@@ -3,6 +3,9 @@ const create =
     BaseConsumer: {
       create: createConsumer(channelPool, require('./baseConsumer')),
     },
+    MiddlewareConsumer: {
+      create: createConsumer(channelPool, require('./middlewareConsumer')),
+    },
   });
 
 const createConsumer =

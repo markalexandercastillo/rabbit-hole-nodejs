@@ -8,21 +8,24 @@ describe('Consumer', () => {
     consumer = Consumer.create(channelPool);
   });
 
-  describe('BaseConsumer', () => {
-    let BaseConsumer;
+  [
+    ['BaseConsumer', './baseConsumer'],
+    ['MiddlewareConsumer', './middlewareConsumer'],
+  ].forEach(([consumerType, modulePath]) => describe(consumerType, () => {
+    let consumerModule;
     beforeEach(() => {
-      BaseConsumer = td.replace('./baseConsumer');
+      consumerModule = td.replace(modulePath);
     });
 
     describe('.create', () => {
-      it('creates a BaseConsumer instance with a channel respecting on the given queue', done => {
+      it(`creates a ${consumerType} instance with a channel respecting on the given queue`, done => {
         const expectedQueue = 'some-queue';
         const expectedChannel = td.object('some channel');
         td.when(channelPool.get(td.matchers.contains({
           queue: expectedQueue,
         }))).thenResolve(expectedChannel);
-        td.when(BaseConsumer.create(expectedChannel)).thenResolve();
-        consumer.BaseConsumer.create(expectedQueue)
+        td.when(consumerModule.create(expectedChannel)).thenResolve();
+        consumer[consumerType].create(expectedQueue)
           .then(() => done());
       });
 
@@ -32,8 +35,8 @@ describe('Consumer', () => {
         td.when(channelPool.get(td.matchers.contains({
           prefetch: expectedPrefetch,
         }))).thenResolve(expectedChannel);
-        td.when(BaseConsumer.create(expectedChannel)).thenResolve();
-        consumer.BaseConsumer.create('some-queue')
+        td.when(consumerModule.create(expectedChannel)).thenResolve();
+        consumer[consumerType].create('some-queue')
           .then(() => done());
       });
 
@@ -43,11 +46,11 @@ describe('Consumer', () => {
         td.when(channelPool.get(td.matchers.contains({
           prefetch: expectedPrefetch,
         }))).thenResolve(expectedChannel);
-        td.when(BaseConsumer.create(expectedChannel)).thenResolve();
-        consumer.BaseConsumer.create('some-queue', {prefetch: expectedPrefetch})
+        td.when(consumerModule.create(expectedChannel)).thenResolve();
+        consumer[consumerType].create('some-queue', { prefetch: expectedPrefetch })
           .then(() => done());
       });
     });
-  });
+  }));
 });
 
