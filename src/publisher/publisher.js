@@ -3,6 +3,9 @@ const create =
     BasePublisher: {
       create: createPublisher(channelPool, require('./basePublisher'))
     },
+    MiddlewarePublisher: {
+      create: createPublisher(channelPool, require('./middlewarePublisher'))
+    },
   });
 
 const createPublisher =

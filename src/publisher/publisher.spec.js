@@ -7,24 +7,28 @@ describe('Publisher', () => {
     channelPool = td.object(['get']);
     publisher = Publisher.create(channelPool);
   });
-  describe('BasePublisher', () => {
-    let BasePublisher;
+
+  [
+    ['BasePublisher', './basePublisher'],
+    ['MiddlewarePublisher', './middlewarePublisher'],
+  ].forEach(([publisherType, modulePath]) => describe(publisherType, () => {
+    let publisherModule;
     beforeEach(() => {
-      BasePublisher = td.replace('./basePublisher');
+      publisherModule = td.replace(modulePath);
     });
 
     describe('.create', () => {
-      it('creates a BasePublisher instance with a channel respecting on the given exchange', done => {
+      it(`creates a ${publisherType} instance with a channel respecting on the given exchange`, done => {
         const expectedExchange = 'some-exchange';
         const expectedChannel = td.object('some channel');
         td.when(channelPool.get(td.matchers.contains({
           exchange: expectedExchange,
         }))).thenResolve(expectedChannel);
-        td.when(BasePublisher.create(expectedChannel)).thenResolve();
-        publisher.BasePublisher.create(expectedExchange)
+        td.when(publisherModule.create(expectedChannel)).thenResolve();
+        publisher[publisherType].create(expectedExchange)
           .then(() => done());
       });
     });
-  });
+  }));
 });
 
