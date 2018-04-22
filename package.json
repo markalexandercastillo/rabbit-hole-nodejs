@@ -4,7 +4,7 @@
   "description": "Another RabbitMQ library",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "nyc --reporter=html mocha \"./src/**/*.spec.js\""
   },
   "keywords": [
     "amqp",
@@ -23,5 +23,10 @@
     "nyc": "^11.7.1",
     "testdouble": "^3.7.0",
     "testdouble-chai": "^0.5.0"
+  },
+  "nyc": {
+    "exclude": [
+      "**/*.spec.js"
+    ]
   }
 }
