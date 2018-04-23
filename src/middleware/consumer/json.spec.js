@@ -6,7 +6,7 @@ const expect = chai.expect;
 describe('Middleware.Consumer.json', () => {
   it('throws an error when contentType is not set', () => {
     expect(() => jsonMiddleware({ properties: {} }))
-      .to.throw("JSON-encoded messages are expected to have the content_type property set to 'application/json'");
+      .to.throw("JSON-encoded messages are expected to have the content_type header property set to 'application/json'");
   });
 
   it("throws an error when contentType is not 'application/json'", () => {
@@ -15,7 +15,7 @@ describe('Middleware.Consumer.json', () => {
         contentType: 'application/octet-stream'
       }
     }))
-      .to.throw("JSON-encoded messages are expected to have the content_type property set to 'application/json'");
+      .to.throw("JSON-encoded messages are expected to have the content_type header property set to 'application/json'");
   });
 
   it("appends a 'json' property with a value of the JSON-decoded content", () => {
