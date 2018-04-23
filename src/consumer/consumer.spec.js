@@ -8,6 +8,10 @@ describe('Consumer', () => {
     consumer = Consumer.create(channelPool);
   });
 
+  afterEach(() => {
+    td.reset();
+  });
+
   [
     ['BaseConsumer', './baseConsumer'],
     ['MiddlewareConsumer', './middlewareConsumer'],

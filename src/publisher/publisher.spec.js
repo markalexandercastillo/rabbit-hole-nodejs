@@ -8,6 +8,10 @@ describe('Publisher', () => {
     publisher = Publisher.create(channelPool);
   });
 
+  afterEach(() => {
+    td.reset();
+  });
+
   [
     ['BasePublisher', './basePublisher'],
     ['MiddlewarePublisher', './middlewarePublisher'],
