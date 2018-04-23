@@ -3,6 +3,7 @@ const amqp = require('amqplib');
 const Publisher = require('./publisher')
   , Consumer = require('./consumer')
   , ChannelPool = require('./channelPool')
+  , Middleware = require('./middleware')
   , CONTENT_TYPES = require('./contentTypes');
 
 /**
@@ -72,5 +73,6 @@ const create =
 
 module.exports = {
   create,
+  Middleware,
   CONTENT_TYPES,
 };
