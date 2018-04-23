@@ -2,7 +2,8 @@ const amqp = require('amqplib');
 
 const Publisher = require('./publisher')
   , Consumer = require('./consumer')
-  , ChannelPool = require('./channelPool');
+  , ChannelPool = require('./channelPool')
+  , CONTENT_TYPES = require('./contentTypes');
 
 /**
  * See http://www.squaremobius.net/amqp.node/channel_api.html#connect
@@ -71,4 +72,5 @@ const create =
 
 module.exports = {
   create,
+  CONTENT_TYPES,
 };
