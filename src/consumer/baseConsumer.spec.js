@@ -74,10 +74,11 @@ describe('BaseConsumer', () => {
       });
 
       it('respects the given cb', done => {
-        const expectedCb = message => `${message}-updated`;
+        const expectedCb = ({ message }) => `${message}-updated`;
         whenLoose(channel.consume(
           td.matchers.anything(),
-          td.matchers.argThat(cb => cb('some-message') === expectedCb('some-message'))
+          td.matchers.argThat(cb => cb('some-message') === expectedCb({message: 'some-message'})
+          )
         )).thenResolve();
         consumer.consume(expectedCb)
           .then(() => done());

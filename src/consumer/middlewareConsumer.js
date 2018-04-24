@@ -14,7 +14,7 @@ const createWithMiddlewares =
          */
         consume: (cb, options = {}) =>
           baseConsumer.consume(
-            message =>
+            ({message}) =>
               promiseReduce(
                 middlewares,
                 (message, { onMessage, onError = null }) =>
@@ -38,7 +38,7 @@ const createWithMiddlewares =
                 {...message, hadMiddlewareError: false}
               ).then(message => {
                 if (!message.hadMiddlewareError) {
-                  cb(message);
+                  cb({message});
                 }
               }),
             options

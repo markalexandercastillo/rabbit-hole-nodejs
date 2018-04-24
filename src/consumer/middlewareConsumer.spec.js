@@ -74,10 +74,10 @@ describe('MiddlewareConsumer', () => {
       });
 
       it('respects the given cb', done => {
-        const expectedCb = message => `${message}-updated`;
+        const expectedCb = ({message}) => `${message}-updated`;
         whenLoose(channel.consume(
           td.matchers.anything(),
-          td.matchers.argThat(async cb => await cb('some-message') === 'some-message-updated')
+          td.matchers.argThat(async cb => await cb('some-message') === expectedCb({ message: 'some-message' }))
         )).thenResolve();
         consumer.consume(expectedCb)
           .then(() => done());
