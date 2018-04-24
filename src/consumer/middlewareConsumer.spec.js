@@ -5,10 +5,10 @@ const whenLoose = testDouble => td.when(testDouble, {ignoreExtraArgs: true});
 
 describe('MiddlewareConsumer', () => {
   let queue, channel, consumer;
-  beforeEach(() => {
+  beforeEach(async () => {
     queue = 'some-queue';
     channel = td.object(['consume', 'prefetch', 'ack', 'nack']);
-    consumer = MiddlewareConsumer.create(channel, queue);
+    consumer = await MiddlewareConsumer.create(channel, queue);
   });
 
   context('Instance methods', () => {
@@ -77,7 +77,7 @@ describe('MiddlewareConsumer', () => {
         const expectedCb = message => `${message}-updated`;
         whenLoose(channel.consume(
           td.matchers.anything(),
-          td.matchers.argThat(cb => cb('some-message') === 'some-message-updated')
+          td.matchers.argThat(async cb => await cb('some-message') === 'some-message-updated')
         )).thenResolve();
         consumer.consume(expectedCb)
           .then(() => done());
@@ -113,41 +113,54 @@ describe('MiddlewareConsumer', () => {
             message;
 
         appendMiddleware =
-          (targetKey, toAppend) => message =>
-            ({ [targetKey]: `${message[targetKey]}-${toAppend}` });
+          (targetKey, toAppend) => ({
+            onMessage: message =>
+              ({ [targetKey]: `${message[targetKey]}-${toAppend}` })
+          });
       });
 
       it('calls the given middleware function on the consumed message before calling the given cb', done => {
-        consumer.use(appendMiddleware('someKey', 'appended'));
         whenLoose(channel.consume(
           td.matchers.anything(),
-          td.matchers.argThat(cb => cb({ someKey: 'original' }).someKey === 'original-appended')
+          td.matchers.argThat(async cb => await cb({ someKey: 'original' }).someKey === 'original-appended')
         )).thenResolve();
-        consumer.consume(identity)
+        consumer.use(appendMiddleware('someKey', 'appended'))
+          .then(consumer => consumer.consume(identity))
           .then(() => done());
       });
 
       it('respects middleware ordering on one invocation', done => {
+        whenLoose(channel.consume(
+          td.matchers.anything(),
+          td.matchers.argThat(async cb => await cb({ someKey: 'original' }).someKey === 'original-first-second')
+        )).thenResolve();
         consumer.use(
           appendMiddleware('someKey', 'first'),
           appendMiddleware('someKey', 'second')
-        );
-        whenLoose(channel.consume(
-          td.matchers.anything(),
-          td.matchers.argThat(cb => cb({ someKey: 'original' }).someKey === 'original-first-second')
-        )).thenResolve();
-        consumer.consume(identity)
+        ).then(consumer => consumer.consume(identity))
           .then(() => done());
       });
 
       it('respects middleware ordering on separate invocations', done => {
-        consumer.use(appendMiddleware('key', 'first'));
-        consumer.use(appendMiddleware('key', 'second'));
         whenLoose(channel.consume(
           td.matchers.anything(),
-          td.matchers.argThat(cb => cb({ key: 'original' }).key === 'original-first-second')
+          td.matchers.argThat(async cb => await cb({ key: 'original' }).key === 'original-first-second')
         )).thenResolve();
-        consumer.consume(identity)
+
+        consumer.use(appendMiddleware('key', 'first'))
+          .then(consumer => consumer.use(appendMiddleware('key', 'second')))
+          .then(consumer => consumer.consume(identity))
+          .then(() => done());
+      });
+
+      it('supports Promise-based middleware', done => {
+        whenLoose(channel.consume(
+          td.matchers.anything(),
+          td.matchers.argThat(async cb => await cb({ someKey: 'original' }).someKey === 'original-appended')
+        )).thenResolve();
+
+        consumer.use(Promise.resolve(appendMiddleware('someKey', 'appended')))
+          .then(consumer => consumer.consume(identity))
           .then(() => done());
       });
     });
