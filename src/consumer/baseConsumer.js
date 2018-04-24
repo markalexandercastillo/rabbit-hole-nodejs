@@ -35,6 +35,7 @@ const create =
           message,
           nack,
           ack,
+          error: null,
         }), options),
     }));
 
