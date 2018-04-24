@@ -5,106 +5,137 @@ const verifyLoose = spy => td.verify(spy, { ignoreExtraArgs: true });
 
 describe('MiddlewarePublisher', () => {
   describe('Instance Methods', () => {
-    beforeEach(() => {
-      this.exchange = 'some-exchange';
-      this.channel = td.object(['publish', 'test']);
-      this.publisher = MiddlewarePublisher.create(this.channel, this.exchange);
+    let exchange, channel, publisher;
+    beforeEach(async () => {
+      exchange = 'some-exchange';
+      channel = td.object(['publish', 'test']);
+      publisher = await MiddlewarePublisher.create(channel, exchange);
     });
 
     describe('.publish', () => {
       it('respects the exchange the publisher was created with', () => {
-        this.publisher.publish('some-routing-key', Buffer.from('some-content'));
-        verifyLoose(this.channel.publish(this.exchange));
+        publisher.publish('some-routing-key', Buffer.from('some-content'))
+          .then(() => verifyLoose(channel.publish(exchange)));
       });
 
       it('respects the given routing key', () => {
         const expectedRoutingKey = 'some-routing-key';
-        this.publisher.publish(expectedRoutingKey, Buffer.from('some-content'));
-        verifyLoose(this.channel.publish(td.matchers.anything(), expectedRoutingKey));
+        publisher.publish(expectedRoutingKey, Buffer.from('some-content'))
+          .then(() => verifyLoose(channel.publish(td.matchers.anything(), expectedRoutingKey)));
       });
 
       it('respects the given content', () => {
         const expectedContent = Buffer.from('some-content');
-        this.publisher.publish('some-routing-key', expectedContent);
-        verifyLoose(this.channel.publish(td.matchers.anything(), td.matchers.anything(), expectedContent));
+        publisher.publish('some-routing-key', expectedContent)
+          .then(() => verifyLoose(channel.publish(
+            td.matchers.anything(),
+            td.matchers.anything(),
+            expectedContent
+          )));
       });
 
       it('respects the given options', () => {
         const expectedOptions = {someKey: 'some-value'};
-        this.publisher.publish('some-routing-key', Buffer.from('some-content'), expectedOptions);
-        verifyLoose(this.channel.publish(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), expectedOptions));
+        publisher.publish('some-routing-key', Buffer.from('some-content'), expectedOptions)
+          .then(() => verifyLoose(channel.publish(
+            td.matchers.anything(),
+            td.matchers.anything(),
+            td.matchers.anything(),
+            expectedOptions
+          )));
       });
     });
 
     describe('.use', () => {
-      beforeEach(() => {
-        this.appendMiddleware =
-          toAppend => (routingKey, content, options) =>
-            [
+      const appendMiddleware =
+        toAppend =>
+          ({
+            onRoutingKey: routingKey =>
               `${routingKey}-${toAppend}`,
+            onContent: content =>
               Buffer.from(`${content.toString()}-${toAppend}`),
-              {
+            onOptions: options =>
+              ({
                 ...options,
                 appendedKey: options.appendedKey
                   ? `${options.appendedKey}-${toAppend}`
                   : toAppend,
-              }
-            ];
-      });
+              }),
+          });
 
       it('calls the given middleware function on the arguments before publishing', () => {
-        this.publisher.use(this.appendMiddleware('appended'));
-
-        this.publisher.publish(
-          'some-routing-key',
-          Buffer.from('some-content'),
-          { originalKey: 'some-original-value' },
-        );
-
-        td.verify(this.channel.publish(
-          td.matchers.anything(),
-          'some-routing-key-appended',
-          Buffer.from('some-content-appended'),
-          td.matchers.contains({ appendedKey: 'appended'}),
-        ));
+        publisher.use(appendMiddleware('appended'))
+          .then(publisher => publisher.publish(
+            'some-routing-key',
+            Buffer.from('some-content'),
+            { originalKey: 'some-original-value' },
+          ))
+          .then(() => td.verify(channel.publish(
+            td.matchers.anything(),
+            'some-routing-key-appended',
+            Buffer.from('some-content-appended'),
+            td.matchers.contains({ appendedKey: 'appended' }),
+          )));
       });
 
       it('respects middleware ordering on one invocation', () => {
-        this.publisher.use(
-          this.appendMiddleware('first'),
-          this.appendMiddleware('second'),
-        );
-
-        this.publisher.publish(
-          'some-routing-key',
-          Buffer.from('some-content'),
-          { originalKey: 'some-original-value' },
-        );
-
-        td.verify(this.channel.publish(
-          td.matchers.anything(),
-          'some-routing-key-first-second',
-          Buffer.from('some-content-first-second'),
-          td.matchers.contains({appendedKey: 'first-second'})
-        ));
+        publisher.use(appendMiddleware('first'), appendMiddleware('second'))
+          .then(publisher => publisher.publish(
+            'some-routing-key',
+            Buffer.from('some-content'),
+            { originalKey: 'some-original-value' },
+          ))
+          .then(() => td.verify(channel.publish(
+            td.matchers.anything(),
+            'some-routing-key-first-second',
+            Buffer.from('some-content-first-second'),
+            td.matchers.contains({ appendedKey: 'first-second' })
+          )));
       });
 
       it('respects middleware ordering on separate invocations', () => {
-        this.publisher.use(this.appendMiddleware('first'));
-        this.publisher.use(this.appendMiddleware('second'));
+        publisher.use(appendMiddleware('first'))
+          .then(publisher => publisher.use(appendMiddleware('second')))
+          .then(publisher => publisher.publish(
+            'some-routing-key',
+            Buffer.from('some-content'),
+            { originalKey: 'some-original-value' }
+          ))
+          .then(() => td.verify(channel.publish(
+            td.matchers.anything(),
+            'some-routing-key-first-second',
+            Buffer.from('some-content-first-second'),
+            td.matchers.contains({ appendedKey: 'first-second' }),
+          )));
+      });
 
-        this.publisher.publish(
+      const originalArgs = [
+        'some-routing-key',
+        Buffer.from('some-content'),
+        { originalKey: 'some-original-value' },
+      ];
+      [
+        ['onRoutingKey', 'routingKey', [
           'some-routing-key',
+          Buffer.from('some-content-appended'),
+          td.matchers.contains({ appendedKey: 'appended' }),
+        ]],
+        ['onOptions', 'options', [
+          'some-routing-key-appended',
+          Buffer.from('some-content-appended'),
+          { originalKey: 'some-original-value' },
+        ]],
+        ['onContent', 'content', [
+          'some-routing-key-appended',
           Buffer.from('some-content'),
-          { originalKey: 'some-original-value' }
-        );
-
-        td.verify(this.channel.publish(
-          td.matchers.anything(),
-          'some-routing-key-first-second',
-          Buffer.from('some-content-first-second'),
-          td.matchers.contains({ appendedKey: 'first-second' }),
-        ));
+          td.matchers.contains({ appendedKey: 'appended' })
+        ]],
+      ].forEach(([middlewareKey, argName, expectedArgs]) => {
+        it(`preserves the ${argName} when the ${middlewareKey} function is omitted`, () => {
+          publisher.use({...appendMiddleware('appended'), [middlewareKey]: undefined})
+            .then(publisher => publisher.publish(...originalArgs))
+            .then(() => td.verify(channel.publish(td.matchers.anything(), ...expectedArgs)));
+        });
       });
     });
   });
