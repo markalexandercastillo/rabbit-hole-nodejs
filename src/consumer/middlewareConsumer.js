@@ -25,6 +25,7 @@ const createWithMiddlewares =
                     ? Promise.resolve(onMessage(args.message))
                       // merge transformed message from onMessage consume callback args
                       .then(message => ({...args, message}))
+                      // the onMessage callback rejected
                       .catch(error =>
                         // check if the middleware has an onError
                         onError
