@@ -4,7 +4,8 @@
   "description": "Another RabbitMQ library",
   "main": "index.js",
   "scripts": {
-    "test": "nyc --reporter=html mocha \"./src/**/*.spec.js\""
+    "coverage": "nyc --reporter=html mocha \"./src/**/*.spec.js\"",
+    "test": "mocha \"./src/**/*.spec.js\""
   },
   "keywords": [
     "amqp",
