@@ -5,17 +5,16 @@ const expect = chai.expect;
 
 describe('Middleware.Consumer.json', () => {
   it('throws an error when contentType is not set', () => {
-    expect(() => jsonMiddleware({ properties: {} }))
-      .to.throw("JSON-encoded messages are expected to have the content_type header property set to 'application/json'");
+    expect(jsonMiddleware().onMessage({ properties: {} }))
+      .to.be.rejectedWith("JSON-encoded messages are expected to have the content_type header property set to 'application/json'");
   });
 
   it("throws an error when contentType is not 'application/json'", () => {
-    expect(() => jsonMiddleware({
+    expect(jsonMiddleware().onMessage({
       properties: {
         contentType: 'application/octet-stream'
       }
-    }))
-      .to.throw("JSON-encoded messages are expected to have the content_type header property set to 'application/json'");
+    })).to.be.rejectedWith("JSON-encoded messages are expected to have the content_type header property set to 'application/json'");
   });
 
   it("appends a 'json' property with a value of the JSON-decoded content", () => {
@@ -23,16 +22,14 @@ describe('Middleware.Consumer.json', () => {
       someKey: 'some-value',
     };
 
-    const message = jsonMiddleware({
+    expect(jsonMiddleware().onMessage({
       properties: {
         contentType: 'application/json'
       },
       content: {
         toString: () => JSON.stringify(expectedContent),
       },
-    });
-
-    expect(message).to.deep.contain({
+    })).to.eventually.deep.contain({
       json: expectedContent,
     });
   });
@@ -47,8 +44,6 @@ describe('Middleware.Consumer.json', () => {
       },
     };
 
-    const message = jsonMiddleware(expectedMessageSubset);
-
-    expect(message).to.deep.contain(expectedMessageSubset);
+    expect(jsonMiddleware().onMessage(expectedMessageSubset)).to.eventually.deep.contain(expectedMessageSubset);
   });
 });

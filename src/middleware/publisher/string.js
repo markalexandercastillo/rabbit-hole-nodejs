@@ -1,12 +1,11 @@
-module.exports =
+
+/**
+ * Allows for the publishing of strings as content
+*/
+module.exports = {
   /**
-   * Allows for the publishing of strings as content
-   * @param {string} routingKey
    * @param {string} content
-   * @param {object} options
+   * @return {Buffer}
    */
-  (routingKey, content, options = {}) => [
-    routingKey,
-    Buffer.from(content),
-    options,
-  ];
+  onContent: content => Buffer.from(content),
+};
