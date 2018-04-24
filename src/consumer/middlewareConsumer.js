@@ -17,28 +17,26 @@ const createWithMiddlewares =
             ({message}) =>
               promiseReduce(
                 middlewares,
-                (message, { onMessage, onError = null }) =>
-                  !message.hadMiddlewareError
-                    ? Promise.resolve(onMessage(message))
+                (args, { onMessage, onError = null }) =>
+                  !args.error
+                    ? Promise.resolve(onMessage(args.message))
+                      .then(() => (args))
                       .catch(error =>
                         onError
                           ? Promise.resolve(onError({
+                            ...args,
                             error,
-                            message,
-                            nack: baseConsumer.nack,
-                            ack: baseConsumer.ack,
+                          })).then(() => ({
+                            ...args,
+                            error,
                           }))
                           : Promise.reject(error)
                       )
-                      .then(() => ({
-                        ...message,
-                        hadMiddlewareError: true,
-                      }))
-                    : message,
-                {...message, hadMiddlewareError: false}
-              ).then(message => {
-                if (!message.hadMiddlewareError) {
-                  cb({message});
+                    : args,
+                {message, error: null, ack: baseConsumer.ack, nack: baseConsumer.nack}
+              ).then(args => {
+                if (!args.error) {
+                  cb(args);
                 }
               }),
             options
