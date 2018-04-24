@@ -6,10 +6,10 @@ const whenLoose = testDouble => td.when(testDouble, { ignoreExtraArgs: true });
 describe('BaseConsumer', () => {
   context('Instance methods', () => {
     let queue, channel, consumer;
-    beforeEach(() => {
+    beforeEach(async () => {
       queue = 'some-queue';
       channel = td.object(['consume', 'prefetch', 'ack', 'nack']);
-      consumer = BaseConsumer.create(channel, queue);
+      consumer = await BaseConsumer.create(channel, queue);
     });
 
     describe('.ack', () => {
