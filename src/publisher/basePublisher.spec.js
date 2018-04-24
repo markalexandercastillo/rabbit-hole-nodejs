@@ -6,10 +6,10 @@ const verifyLoose = spy => td.verify(spy, { ignoreExtraArgs: true });
 describe('BasePublisher', () => {
   describe('Instance Methods', () => {
     let exchange, channel, publisher;
-    beforeEach(() => {
+    beforeEach(async () => {
       exchange = 'some-exchange';
       channel = td.object(['publish', 'test']);
-      publisher = BasePublisher.create(channel, exchange);
+      publisher = await BasePublisher.create(channel, exchange);
     });
 
     describe('.publish', () => {

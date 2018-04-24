@@ -1,6 +1,6 @@
 const create =
   (channel, exchange) =>
-    ({
+    Promise.resolve({
       /**
        * See http://www.squaremobius.net/amqp.node/channel_api.html#channel_publish
        * @param {string} routingKey
