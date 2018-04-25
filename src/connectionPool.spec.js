@@ -15,7 +15,7 @@ describe('ConnectionPool', () => {
     ConnectionPool = require('./connectionPool');
   });
 
-  describe.only('Instance methods', () => {
+  describe('Instance methods', () => {
     describe('.getForConsumer', () => {
       it('respects the options the ConnectionPool was created with', done => {
         const expectedOptions = 'AMQP connection options';

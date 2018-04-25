@@ -2,7 +2,7 @@ const td = require('testdouble');
 
 const whenLoose = testDouble => td.when(testDouble, {ignoreExtraArgs: true});
 
-describe.only('Connection', () => {
+describe('Connection', () => {
   let Connection, amqp, ChannelPool;
   beforeEach(() => {
     amqp = td.replace('amqplib');
