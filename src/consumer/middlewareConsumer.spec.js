@@ -119,7 +119,7 @@ describe('MiddlewareConsumer', () => {
           });
       });
 
-      it('calls the given middleware function on the consumed message before calling the given cb', done => {
+      it('calls the given middleware onMessage function on the consumed message before calling the given cb', done => {
         whenLoose(channel.consume(
           td.matchers.anything(),
           td.matchers.argThat(async cb => await cb({ someKey: 'original' }).someKey === 'original-appended')
@@ -161,6 +161,63 @@ describe('MiddlewareConsumer', () => {
 
         consumer.use(Promise.resolve(appendMiddleware('someKey', 'appended')))
           .then(consumer => consumer.consume(identity))
+          .then(() => done());
+      });
+
+      it('stops executing middlewares when an error occurs in one of them and invokes the given cb with the error having been set', done => {
+        const expectedCb = td.func();
+
+        whenLoose(channel.consume(
+          td.matchers.anything(),
+          td.matchers.argThat(async cb => {
+            await cb({ someKey: 'original' });
+            td.verify(expectedCb(td.matchers.contains({
+              message: { someKey: 'original-first' },
+              error: new Error('some error'),
+            })));
+            return true;
+          })
+        )).thenResolve();
+
+        consumer.use(
+          appendMiddleware('someKey', 'first'),
+          {
+            onMessage: () => {
+              throw new Error('some error');
+            },
+          },
+          appendMiddleware('someKey', 'second')
+        ).then(consumer => consumer.consume(expectedCb))
+          .then(() => done());
+      });
+
+      it('stops executing middlewares when an error invoking the onError callback when set and not calling the given callback', done => {
+        const expectedCb = td.func();
+        const onError = td.func();
+
+        whenLoose(channel.consume(
+          td.matchers.anything(),
+          td.matchers.argThat(async cb => {
+            await cb({ someKey: 'original' });
+            td.verify(expectedCb(td.matchers.anything()), { times: 0 });
+            td.verify(onError(td.matchers.contains({
+              message: { someKey: 'original-first' },
+              error: new Error('some error'),
+            })));
+            return true;
+          })
+        )).thenResolve();
+
+        consumer.use(
+          appendMiddleware('someKey', 'first'),
+          {
+            onMessage: () => {
+              throw new Error('some error');
+            },
+            onError,
+          },
+          appendMiddleware('someKey', 'second')
+        ).then(consumer => consumer.consume(expectedCb))
           .then(() => done());
       });
     });

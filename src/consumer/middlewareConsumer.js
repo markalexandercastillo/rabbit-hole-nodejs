@@ -16,7 +16,12 @@ const createWithMiddlewares =
           baseConsumer.consume(
             ({ message }) =>
               reduceMiddlewares(middlewares, baseConsumer, message)
-                .then(args => args.error ? null : cb(args)),
+                .then(args => {
+                  const {onErrorCalled, ...restOfArgs} = args;
+                  if (!onErrorCalled) {
+                    cb(restOfArgs);
+                  }
+                }),
             options
           ),
         /**
@@ -39,6 +44,7 @@ const buildInitialArgs =
     ({
       message,
       error: null,
+      onErrorCalled: false,
       ack: consumer.ack,
       nack: consumer.nack,
     });
@@ -66,7 +72,13 @@ const resolveMiddleware =
 
 const resolveOnMessage =
   (middleware, args) =>
-    Promise.resolve(middleware.onMessage(args.message))
+    (new Promise((resolve, reject) => {
+      try {
+        resolve(middleware.onMessage(args.message));
+      } catch (e) {
+        reject(e);
+      }
+    }))
       .then(message => ({ ...args, message }))
       .catch(error => ({ ...args, error }));
 
@@ -74,8 +86,8 @@ const resolveOnError =
   (middleware, args) =>
     middleware.onError
       ? Promise.resolve(middleware.onError(args))
-        .then(() => args)
-      : Promise.reject(args.error);
+        .then(() => ({ ...args, onErrorCalled: true }))
+      : Promise.resolve(args);
 
 module.exports = {
   create,
