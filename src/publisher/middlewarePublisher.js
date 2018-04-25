@@ -40,18 +40,17 @@ const createWithMiddlewares =
          */
         use: (...middlewaresToUse) =>
           Promise.all([...middlewares, ...middlewaresToUse])
-            .then(middlewares =>
-              middlewares.map(
-                ({onRoutingKey = identity, onContent = identity, onOptions = identity}) =>
-                  ({
-                    onRoutingKey,
-                    onContent,
-                    onOptions,
-                  })
-              )
-            )
+            .then(middlewares => middlewares.map(resolveFullMiddleware))
             .then(middlewares => createWithMiddlewares(channel, exchange, middlewares))
       }));
+
+const resolveFullMiddleware =
+  ({ onRoutingKey = identity, onContent = identity, onOptions = identity }) =>
+    ({
+      onRoutingKey,
+      onContent,
+      onOptions,
+    });
 
 const reduceMiddlewares =
   (middlewares, routingKey, content, options) =>
