@@ -192,14 +192,14 @@ describe('MiddlewareConsumer', () => {
       });
 
       it('stops executing middlewares when an error invoking the onError callback when set and not calling the given callback', done => {
-        const expectedCb = td.func();
+        const notSoExpectedCb = td.func();
         const onError = td.func();
 
         whenLoose(channel.consume(
           td.matchers.anything(),
           td.matchers.argThat(async cb => {
             await cb({ someKey: 'original' });
-            td.verify(expectedCb(td.matchers.anything()), { times: 0 });
+            td.verify(notSoExpectedCb(td.matchers.anything()), { times: 0 });
             td.verify(onError(td.matchers.contains({
               message: { someKey: 'original-first' },
               error: new Error('some error'),
@@ -217,7 +217,7 @@ describe('MiddlewareConsumer', () => {
             onError,
           },
           appendMiddleware('someKey', 'second')
-        ).then(consumer => consumer.consume(expectedCb))
+        ).then(consumer => consumer.consume(notSoExpectedCb))
           .then(() => done());
       });
     });
