@@ -4,12 +4,6 @@ const create =
   (channel, exchange) =>
     createWithMiddlewares(channel, exchange);
 
-const promiseReduce =
-  (items, fn, init) => items.reduce(
-    (prev, curr) => prev.then(prev => fn(prev, curr)),
-    Promise.resolve(init)
-  );
-
 const createWithMiddlewares =
   (channel, exchange, middlewares = []) =>
     BasePublisher.create(channel, exchange)
@@ -39,12 +33,7 @@ const createWithMiddlewares =
          * @param {string} options.appId
          */
         publish: (routingKey, content, options = {}) =>
-          promiseReduce(
-            middlewares,
-            ([routingKey, content, options], { onRoutingKey, onContent, onOptions }) =>
-              Promise.all([onRoutingKey(routingKey), onContent(content), onOptions(options)]),
-            [routingKey, content, options]
-          )
+          reduceMiddlewares(middlewares, routingKey, content, options)
             .then(args => basePublisher.publish(...args)),
         /**
          * @param {...Function} middlewaresToUse
@@ -63,6 +52,21 @@ const createWithMiddlewares =
             )
             .then(middlewares => createWithMiddlewares(channel, exchange, middlewares))
       }));
+
+const reduceMiddlewares =
+  (middlewares, routingKey, content, options) =>
+    promiseReduce(
+      middlewares,
+      ([routingKey, content, options], { onRoutingKey, onContent, onOptions }) =>
+        Promise.all([onRoutingKey(routingKey), onContent(content), onOptions(options)]),
+      [routingKey, content, options]
+    );
+
+const promiseReduce =
+  (items, fn, init) => items.reduce(
+    (prevPromise, curr) => prevPromise.then(prev => fn(prev, curr)),
+    Promise.resolve(init)
+  );
 
 const identity = x => x;
 
