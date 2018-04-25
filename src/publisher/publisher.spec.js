@@ -2,10 +2,10 @@ const td = require('testdouble')
   , Publisher = require('./publisher');
 
 describe('Publisher', () => {
-  let publisher, channelPool;
+  let publisher, connectionPool;
   beforeEach(() => {
-    channelPool = td.object(['get']);
-    publisher = Publisher.create(channelPool);
+    connectionPool = td.object(['getForPublisher']);
+    publisher = Publisher.create(connectionPool);
   });
 
   afterEach(() => {
@@ -22,10 +22,12 @@ describe('Publisher', () => {
     });
 
     describe('.create', () => {
-      it(`creates a ${publisherType} instance with a channel respecting on the given exchange`, done => {
+      it(`creates a ${publisherType} instance with a channel created by connection for publishers respecting the given exchange`, done => {
         const expectedExchange = 'some-exchange';
         const expectedChannel = td.object('some channel');
-        td.when(channelPool.get(td.matchers.contains({
+        const expectedConnection = td.object(['getChannel']);
+        td.when(connectionPool.getForPublisher()).thenResolve(expectedConnection);
+        td.when(expectedConnection.getChannel(td.matchers.contains({
           exchange: expectedExchange,
         }))).thenResolve(expectedChannel);
         td.when(publisherModule.create(expectedChannel)).thenResolve();

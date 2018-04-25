@@ -1,24 +1,25 @@
 const create =
-  channelPool => ({
+  connectionPool => ({
     BasePublisher: {
-      create: createPublisher(channelPool, require('./basePublisher'))
+      create: createPublisher(connectionPool, require('./basePublisher'))
     },
     MiddlewarePublisher: {
-      create: createPublisher(channelPool, require('./middlewarePublisher'))
+      create: createPublisher(connectionPool, require('./middlewarePublisher'))
     },
   });
 
 const createPublisher =
   /**
-   * @param {object} channelPool
+   * @param {object} connectionPool
    * @param {object} publisherModule
    */
-  (channelPool, publisherModule) =>
+  (connectionPool, publisherModule) =>
     /**
     * @param {string} exchange
     */
     exchange =>
-      channelPool.get({ exchange })
+      connectionPool.getForPublisher()
+        .then(connection => connection.getChannel({ exchange }))
         .then(channel => publisherModule.create(channel, exchange));
 
 module.exports = {

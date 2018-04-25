@@ -1,26 +1,27 @@
 const create =
-  channelPool => ({
+  connectionPool => ({
     BaseConsumer: {
-      create: createConsumer(channelPool, require('./baseConsumer')),
+      create: createConsumer(connectionPool, require('./baseConsumer')),
     },
     MiddlewareConsumer: {
-      create: createConsumer(channelPool, require('./middlewareConsumer')),
+      create: createConsumer(connectionPool, require('./middlewareConsumer')),
     },
   });
 
 const createConsumer =
   /**
-   * @param {object} channelPool
+   * @param {object} connectionPool
    * @param {object} consumerModule
    */
-  (channelPool, consumerModule) =>
+  (connectionPool, consumerModule) =>
     /**
      * @param {string} queue
      * @param {object} [options={}]
      * @param {number} [options.prefetch=1]
      */
     (queue, { prefetch = 1 } = {}) =>
-      channelPool.get({ queue, prefetch })
+      connectionPool.getForConsumer()
+        .then(connection => connection.getChannel({ queue, prefetch }))
         .then(channel => consumerModule.create(channel, queue, { prefetch }));
 
 module.exports = {
