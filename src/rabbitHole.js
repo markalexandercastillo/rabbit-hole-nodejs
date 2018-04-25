@@ -1,8 +1,6 @@
-const amqp = require('amqplib');
-
 const Publisher = require('./publisher')
   , Consumer = require('./consumer')
-  , ChannelPool = require('./channelPool')
+  , ConnectionPool = require('./connectionPool')
   , Middleware = require('./middleware')
   , CONTENT_TYPES = require('./contentTypes');
 
@@ -31,7 +29,7 @@ const create =
     heartbeat = 0,
     vhost = '/',
   } = {}) =>
-    amqp.connect({
+    ConnectionPool.create({
       protocol,
       hostname,
       port,
@@ -43,22 +41,14 @@ const create =
       vhost,
     })
       .then(
-        connection =>
-          Promise.all([
-            connection,
-            ChannelPool.create(connection),
-          ])
-      )
-      .then(
-        ([connection, channelPool]) => Promise.all([
-          connection,
-          channelPool,
-          Consumer.create(channelPool),
-          Publisher.create(channelPool),
+        connectionPool => Promise.all([
+          connectionPool,
+          Consumer.create(connectionPool),
+          Publisher.create(connectionPool),
         ]),
       )
       .then(
-        ([connection, channelPool, consumerFactory, publisherFactory]) =>
+        ([connectionPool, consumerFactory, publisherFactory]) =>
           ({
             ...consumerFactory,
             ...publisherFactory,
@@ -66,8 +56,7 @@ const create =
              * Closes channels and the connection
              */
             close: () =>
-              channelPool.close()
-                .then(() => connection.close()),
+              connectionPool.close(),
           })
       );
 
