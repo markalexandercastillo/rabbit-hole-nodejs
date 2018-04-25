@@ -16,4 +16,4 @@ const onMessage =
   });
 
 module.exports =
-  onError => ({ onMessage, onError });
+  (onError = null) => ({ onMessage, onError });
