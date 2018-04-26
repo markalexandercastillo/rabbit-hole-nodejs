@@ -13,27 +13,59 @@ describe('BasePublisher', () => {
     });
 
     describe('.publish', () => {
-      it('respects the exchange the publisher was created with', () => {
+      it('respects the exchange the publisher was created with', done => {
         publisher.publish('some-routing-key', Buffer.from('some-content'));
-        verifyLoose(channel.publish(exchange));
+        try {
+          verifyLoose(channel.publish(exchange));
+          done();
+        } catch (e) {
+          done(e);
+        }
       });
 
-      it('respects the given routing key', () => {
+      it('respects the given routing key', done => {
         const expectedRoutingKey = 'some-routing-key';
         publisher.publish(expectedRoutingKey, Buffer.from('some-content'));
-        verifyLoose(channel.publish(td.matchers.anything(), expectedRoutingKey));
+        try {
+          verifyLoose(channel.publish(
+            td.matchers.anything(),
+            expectedRoutingKey
+          ));
+          done();
+        } catch (e) {
+          done(e);
+        }
       });
 
-      it('respects the given content', () => {
+      it('respects the given content', done => {
         const expectedContent = Buffer.from('some-content');
         publisher.publish('some-routing-key', expectedContent);
-        verifyLoose(channel.publish(td.matchers.anything(), td.matchers.anything(), expectedContent));
+        try {
+          verifyLoose(channel.publish(
+            td.matchers.anything(),
+            td.matchers.anything(),
+            expectedContent
+          ));
+          done();
+        } catch (e) {
+          done(e);
+        }
       });
 
-      it('respects the given options', () => {
+      it('respects the given options', done => {
         const expectedOptions = { someKey: 'some-value' };
         publisher.publish('some-routing-key', Buffer.from('some-content'), expectedOptions);
-        verifyLoose(channel.publish(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), expectedOptions));
+        try {
+          verifyLoose(channel.publish(
+            td.matchers.anything(),
+            td.matchers.anything(),
+            td.matchers.anything(),
+            expectedOptions
+          ));
+          done();
+        } catch (e) {
+          done(e);
+        }
       });
     });
   });

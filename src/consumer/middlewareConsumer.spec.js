@@ -171,10 +171,15 @@ describe('MiddlewareConsumer', () => {
           td.matchers.anything(),
           td.matchers.argThat(async cb => {
             await cb({ someKey: 'original' });
-            td.verify(expectedCb(td.matchers.contains({
-              message: { someKey: 'original-first' },
-              error: new Error('some error'),
-            })));
+            try {
+              td.verify(expectedCb(td.matchers.contains({
+                message: { someKey: 'original-first' },
+                error: new Error('some error'),
+              })));
+              done();
+            } catch (e) {
+              return done(e);
+            }
             return true;
           })
         )).thenResolve();
@@ -187,8 +192,7 @@ describe('MiddlewareConsumer', () => {
             },
           },
           appendMiddleware('someKey', 'second')
-        ).then(consumer => consumer.consume(expectedCb))
-          .then(() => done());
+        ).then(consumer => consumer.consume(expectedCb));
       });
 
       it('stops executing middlewares when an error invoking the onError callback when set and not calling the given callback', done => {
@@ -199,11 +203,16 @@ describe('MiddlewareConsumer', () => {
           td.matchers.anything(),
           td.matchers.argThat(async cb => {
             await cb({ someKey: 'original' });
-            td.verify(notSoExpectedCb(td.matchers.anything()), { times: 0 });
-            td.verify(onError(td.matchers.contains({
-              message: { someKey: 'original-first' },
-              error: new Error('some error'),
-            })));
+            try {
+              td.verify(notSoExpectedCb(td.matchers.anything()), { times: 0 });
+              td.verify(onError(td.matchers.contains({
+                message: { someKey: 'original-first' },
+                error: new Error('some error'),
+              })));
+              done();
+            } catch (e) {
+              return done(e);
+            }
             return true;
           })
         )).thenResolve();
@@ -217,8 +226,7 @@ describe('MiddlewareConsumer', () => {
             onError,
           },
           appendMiddleware('someKey', 'second')
-        ).then(consumer => consumer.consume(notSoExpectedCb))
-          .then(() => done());
+        ).then(consumer => consumer.consume(notSoExpectedCb));
       });
     });
   });

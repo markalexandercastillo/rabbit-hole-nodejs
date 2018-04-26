@@ -72,7 +72,8 @@ describe('RabbitHole', () => {
           .then(() => {
             td.verify(Consumer.create(expectedConnectionPool));
           })
-          .then(() => done());
+          .then(() => done())
+          .catch(done);
       });
 
       it('creates a Publisher instance with the created ConnectionPool', done => {
@@ -82,7 +83,8 @@ describe('RabbitHole', () => {
           .then(() => {
             td.verify(Publisher.create(expectedConnectionPool));
           })
-          .then(() => done());
+          .then(() => done())
+          .catch(done);
       });
 
       it('merges the Consumer factory and Publisher factory into the resolved object', done => {

@@ -21,12 +21,13 @@ describe('Connection', () => {
       Connection.create(expectedOptions).then(() => done());
     });
 
-    it('creates a ChannelPool with the created connection', () => {
+    it('creates a ChannelPool with the created connection', done => {
       const expectedConnection = 'A Connection';
       whenLoose(amqp.connect()).thenResolve(expectedConnection);
-      Connection.create({}).then(() => {
-        td.verify(ChannelPool.create(expectedConnection));
-      });
+      Connection.create({})
+        .then(() => td.verify(ChannelPool.create(expectedConnection)))
+        .then(() => done())
+        .catch(done);
     });
   });
 
@@ -49,10 +50,12 @@ describe('Connection', () => {
     });
 
     describe('.close', () => {
-      it('closes the ChannelPool after closing the AMQP connection', () => {
+      it('closes the ChannelPool after closing the AMQP connection', done => {
         td.when(channelPool.close()).thenResolve();
         connection.close()
-          .then(() => td.verify(amqpConnection.close()));
+          .then(() => td.verify(amqpConnection.close()))
+          .then(() => done())
+          .catch(done);
       });
     });
   });

@@ -13,28 +13,34 @@ describe('MiddlewarePublisher', () => {
     });
 
     describe('.publish', () => {
-      it('respects the exchange the publisher was created with', () => {
+      it('respects the exchange the publisher was created with', done => {
         publisher.publish('some-routing-key', Buffer.from('some-content'))
-          .then(() => verifyLoose(channel.publish(exchange)));
+          .then(() => verifyLoose(channel.publish(exchange)))
+          .then(() => done())
+          .catch(done);
       });
 
-      it('respects the given routing key', () => {
+      it('respects the given routing key', done => {
         const expectedRoutingKey = 'some-routing-key';
         publisher.publish(expectedRoutingKey, Buffer.from('some-content'))
-          .then(() => verifyLoose(channel.publish(td.matchers.anything(), expectedRoutingKey)));
+          .then(() => verifyLoose(channel.publish(td.matchers.anything(), expectedRoutingKey)))
+          .then(() => done())
+          .catch(done);
       });
 
-      it('respects the given content', () => {
+      it('respects the given content', done => {
         const expectedContent = Buffer.from('some-content');
         publisher.publish('some-routing-key', expectedContent)
           .then(() => verifyLoose(channel.publish(
             td.matchers.anything(),
             td.matchers.anything(),
             expectedContent
-          )));
+          )))
+          .then(() => done())
+          .catch(done);
       });
 
-      it('respects the given options', () => {
+      it('respects the given options', done => {
         const expectedOptions = {someKey: 'some-value'};
         publisher.publish('some-routing-key', Buffer.from('some-content'), expectedOptions)
           .then(() => verifyLoose(channel.publish(
@@ -42,7 +48,9 @@ describe('MiddlewarePublisher', () => {
             td.matchers.anything(),
             td.matchers.anything(),
             expectedOptions
-          )));
+          )))
+          .then(() => done())
+          .catch(done);
       });
     });
 
@@ -63,7 +71,7 @@ describe('MiddlewarePublisher', () => {
               }),
           });
 
-      it('calls the given middleware function on the arguments before publishing', () => {
+      it('calls the given middleware function on the arguments before publishing', done => {
         publisher.use(appendMiddleware('appended'))
           .then(publisher => publisher.publish(
             'some-routing-key',
@@ -75,10 +83,12 @@ describe('MiddlewarePublisher', () => {
             'some-routing-key-appended',
             Buffer.from('some-content-appended'),
             td.matchers.contains({ appendedKey: 'appended' }),
-          )));
+          )))
+          .then(() => done())
+          .catch(done);
       });
 
-      it('respects middleware ordering on one invocation', () => {
+      it('respects middleware ordering on one invocation', done => {
         publisher.use(appendMiddleware('first'), appendMiddleware('second'))
           .then(publisher => publisher.publish(
             'some-routing-key',
@@ -90,10 +100,12 @@ describe('MiddlewarePublisher', () => {
             'some-routing-key-first-second',
             Buffer.from('some-content-first-second'),
             td.matchers.contains({ appendedKey: 'first-second' })
-          )));
+          )))
+          .then(() => done())
+          .catch(done);
       });
 
-      it('respects middleware ordering on separate invocations', () => {
+      it('respects middleware ordering on separate invocations', done => {
         publisher.use(appendMiddleware('first'))
           .then(publisher => publisher.use(appendMiddleware('second')))
           .then(publisher => publisher.publish(
@@ -106,7 +118,9 @@ describe('MiddlewarePublisher', () => {
             'some-routing-key-first-second',
             Buffer.from('some-content-first-second'),
             td.matchers.contains({ appendedKey: 'first-second' }),
-          )));
+          )))
+          .then(() => done())
+          .catch(done);
       });
 
       const originalArgs = [
@@ -131,10 +145,12 @@ describe('MiddlewarePublisher', () => {
           td.matchers.contains({ appendedKey: 'appended' })
         ]],
       ].forEach(([middlewareKey, argName, expectedArgs]) => {
-        it(`preserves the ${argName} when the ${middlewareKey} function is omitted`, () => {
+        it(`preserves the ${argName} when the ${middlewareKey} function is omitted`, done => {
           publisher.use({...appendMiddleware('appended'), [middlewareKey]: undefined})
             .then(publisher => publisher.publish(...originalArgs))
-            .then(() => td.verify(channel.publish(td.matchers.anything(), ...expectedArgs)));
+            .then(() => td.verify(channel.publish(td.matchers.anything(), ...expectedArgs)))
+            .then(() => done())
+            .catch(done);
         });
       });
     });

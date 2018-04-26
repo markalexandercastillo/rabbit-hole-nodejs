@@ -85,7 +85,8 @@ describe('ChannelPool', () => {
             td.verify(aChannel.close());
             td.verify(anotherChannel.close());
           })
-          .then(() => done());
+          .then(() => done())
+          .catch(done);
       });
     });
   });
