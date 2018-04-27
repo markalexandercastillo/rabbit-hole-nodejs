@@ -5,7 +5,7 @@ const whenLoose = testDouble => td.when(testDouble, {ignoreExtraArgs: true});
 const expect = chai.expect;
 
 describe('RabbitHole', () => {
-  let Publisher, Consumer, ConnectionPool, amqp, RabbitHole;
+  let Publisher, Consumer, ConnectionPool, RabbitHole;
   beforeEach(() => {
     Publisher = td.replace('./publisher');
     Consumer = td.replace('./consumer');
