@@ -39,14 +39,14 @@ describe('ChannelPool', () => {
         };
 
         const optionSubsets =
-          Object.keys(options).reduce(
-            (optionSubsets, optionKey) =>
+          Object.entries(options).reduce(
+            (optionSubsets, [optionKey, optionValue]) =>
               [
                 ...optionSubsets,
                 ...optionSubsets.map(
                   optionSubset =>
                     ({
-                      [optionKey]: options[optionKey],
+                      [optionKey]: optionValue,
                       ...optionSubset
                     })
                 )

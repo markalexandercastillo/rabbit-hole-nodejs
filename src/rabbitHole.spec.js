@@ -35,8 +35,7 @@ describe('RabbitHole', () => {
         heartbeat: 0,
         vhost: '/',
       };
-      Object.keys(defaultOptions).forEach(optionKey => {
-        const defaultValue = defaultOptions[optionKey];
+      Object.entries(defaultOptions).forEach(([optionKey, defaultValue]) => {
         it(`defaults the '${optionKey}' value to ${JSON.stringify(defaultValue)}`, done => {
           whenLoose(ConnectionPool.create(td.matchers.contains({ [optionKey]: defaultValue }))).thenResolve();
           RabbitHole.create()
@@ -54,9 +53,8 @@ describe('RabbitHole', () => {
         heartbeat: 78,
         vhost: 'some-vhost',
       };
-      Object.keys(userDefinedOptions).forEach(optionKey => {
+      Object.entries(userDefinedOptions).forEach(([optionKey, expectedValue]) => {
         it(`respects the given '${optionKey}' value`, done => {
-          const expectedValue = userDefinedOptions[optionKey];
           whenLoose(ConnectionPool.create(td.matchers.contains({ [optionKey]: expectedValue }))).thenResolve();
           RabbitHole.create({ [optionKey]: expectedValue })
             .then(() => done());

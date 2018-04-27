@@ -88,7 +88,7 @@ describe('BaseConsumer', () => {
         td.when(channel.consume(
           td.matchers.anything(),
           td.matchers.anything(),
-          td.matchers.argThat(options => !Object.keys(options).length)
+          td.matchers.argThat(options => !Object.entries(options).length)
         )).thenResolve();
         consumer.consume(td.func())
           .then(() => done());

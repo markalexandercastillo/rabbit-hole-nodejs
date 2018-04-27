@@ -13,7 +13,7 @@ const createWithCache =
   (options, cache = {}) =>
     Promise.resolve({
       close: () =>
-        Promise.all(Object.keys(cache).map(key => cache[key].close())),
+        Promise.all(Object.values(cache).map(connection => connection.close())),
       get: key =>
         Promise.resolve(cache[key])
           .then(connection => connection || Connection.create(options))
