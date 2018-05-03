@@ -1,5 +1,5 @@
 {
-  "name": "rabbit-hole",
+  "name": "@kastilyo/rabbit-hole",
   "version": "0.0.1",
   "description": "Another RabbitMQ library",
   "main": "index.js",
