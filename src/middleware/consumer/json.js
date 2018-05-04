@@ -1,7 +1,7 @@
 const CONTENT_TYPES = require('./../../contentTypes');
 
 const onMessage =
-  message => new Promise((resolve, reject) => {
+  JSON => message => new Promise((resolve, reject) => {
     if (
       !message.properties.hasOwnProperty('contentType')
       || message.properties.contentType !== CONTENT_TYPES.JSON
@@ -15,5 +15,9 @@ const onMessage =
     });
   });
 
+const defaultJson = {
+  stringify: JSON.stringify,
+};
+
 module.exports =
-  (onError = null) => ({ onMessage, onError });
+  ({ onError = null, JSON = defaultJson } = {}) => ({ onMessage: onMessage(JSON), onError });
