@@ -16,7 +16,7 @@ const onMessage =
   });
 
 const defaultJson = {
-  stringify: JSON.stringify,
+  parse: JSON.parse,
 };
 
 module.exports =
